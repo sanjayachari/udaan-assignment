@@ -10,12 +10,13 @@ const {
   logInteraction,
   addOrder,
   setCallFrequency,
-  getTodayCalls,
-  getLastCall,
-  getPerformance,
   getUser,
   getKAM,
-  getLead
+  getLead,
+  updateLeadDetails,
+  getLeadById,
+  getCallRemainingLeads,
+  getCallHistory
 } = require("../controllers/controller");
 
 
@@ -30,15 +31,19 @@ routes.post("/login", login);
 routes.get("/get-kam/:kamId", verifyJWT, getKAM);
 
 routes.post('/leads', addLead);
+routes.get('/leads/:id', getLeadById);
+routes.put('/leads', updateLeadDetails); // update
+
 routes.get('/leads/kam/:kamId', getLead);
+routes.get('/remaining-leads/kam/:kamId', getCallRemainingLeads);
+routes.get('/call-history-leads/kam/:kamId', getCallHistory);
+
 routes.post('/leads/:leadId/contacts', addContact);
 routes.post('/leads/:leadId/interactions', logInteraction);
 routes.post('/leads/:leadId/orders', addOrder);
 routes.post('/leads/:leadId/callFrequency', setCallFrequency);
-routes.get('/leads/todayCalls', getTodayCalls);
-routes.get('/leads/:leadId/lastCall', getLastCall);
 
-routes.get('/leads/:leadId/performance', getPerformance);
+
 
 
 

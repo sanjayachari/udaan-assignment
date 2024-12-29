@@ -3,6 +3,7 @@ const Lead = require("../db/leadSchema");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
 
 const test = (req, res) => {
   console.log("Test working..");
@@ -22,10 +23,10 @@ const login = async (req, res) => {
     if (hashedPassword) {
       const jwtSign = jwt.sign({ user }, "san", { expiresIn: 60 * 60 });
       res.cookie("token", jwtSign, {
-        // httpOnly: true,
+        httpOnly: true,
         secure: true,
         sameSite: "none",
-        // maxAge: 3600000, // Expiration time in milliseconds
+        maxAge: 3600000, // Expiration time in milliseconds
 
       });
 
@@ -66,7 +67,6 @@ const register = async (req, res) => {
       ],
     });
 
-    console.log('New KAM registered:', newKAM);
     return res.status(200).json({
       message: 'KAM registration successful!'
     });
@@ -131,7 +131,7 @@ const getUser = async (req, res) => {
     // Return the KAM's details
     res.status(200).json({
       message: 'KAM details fetched successfully',
-      kams: kam.KAMS,  // Assuming the KAMs are stored in an array under the 'KAMS' field
+      kams: kam,  // Assuming the KAMs are stored in an array under the 'KAMS' field
     });
   } catch (error) {
     console.error('Error fetching KAMs:', error);
@@ -213,6 +213,42 @@ const addLead = async (req, res) => {
   }
 };
 
+const updateLeadDetails = async (req, res) => {
+  try {
+    // Destructure the fields from the request body
+    const { leadId, name, address, leadStatus } = req.body;
+
+    // Validate required fields
+    if (!leadId || !name || !address || !leadStatus) {
+      return res
+        .status(400)
+        .json({ error: 'leadId, name, address, and leadStatus are required.' });
+    }
+
+    // Find the lead by ID and update the fields
+    const updatedLead = await Lead.findByIdAndUpdate(
+      leadId,
+      { name, address, leadStatus },
+      { new: true, runValidators: true } // Return the updated document
+    );
+
+    console.log('test', leadId, name, address, leadStatus, updatedLead)
+
+    // If the lead does not exist, return an error
+    if (!updatedLead) {
+      return res.status(404).json({ error: 'Lead not found.' });
+    }
+
+    // Return success response with the updated lead data
+    res.status(200).json({ message: 'Lead updated successfully!', lead: updatedLead });
+  } catch (error) {
+    // Log the error and return a 500 error response
+    console.error('Error updating lead details:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+
 const getLead = async (req, res) => {
   try {
     const { kamId } = req.params; // Get the leadId from route params
@@ -227,6 +263,109 @@ const getLead = async (req, res) => {
   }
 };
 
+
+const getCallRemainingLeads = async (req, res) => {
+  try {
+    const { kamId } = req.params; // Get the kamId from route params
+
+    // Fetch all leads for the given KAM
+    const leads = await Lead.find({ 'keyAccountManagers.kamId': kamId });
+    if (!leads || leads.length === 0) {
+      return res.status(404).json({ error: 'No leads found for the specified KAM.' });
+    }
+
+    // Get today's date without time (UTC format)
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    // Filter leads based on `lastCall` and `callFrequency`
+    const remainingCallsLeads = leads.filter((lead) => {
+      if (!lead.lastCall) return true; // Include leads with no lastCall
+
+      const lastCallDate = new Date(lead.lastCall);
+      lastCallDate.setUTCHours(0, 0, 0, 0);
+
+      // Check call frequency and compare accordingly
+      if (lead.callFrequency === 'Daily') {
+        return lastCallDate.getTime() !== today.getTime(); // Exclude leads called today for daily frequency
+      } else if (lead.callFrequency === 'Weekly') {
+        const oneWeekAgo = new Date(today);
+        oneWeekAgo.setDate(today.getDate() - 7); // Set the date to one week ago
+        return lastCallDate.getTime() < oneWeekAgo.getTime(); // Exclude leads called in the last week for weekly frequency
+      }
+      
+      return true; // Include leads with no frequency set or any other condition
+    });
+
+    return res.status(200).json(remainingCallsLeads);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+
+
+const getCallHistory = async (req, res) => {
+  try {
+    const { kamId } = req.params; // Get the kamId from route params
+
+    // Fetch all leads for the given KAM
+    const leads = await Lead.find({ 'keyAccountManagers.kamId': kamId });
+    if (!leads || leads.length === 0) {
+      return res.status(404).json({ error: 'No leads found for the specified KAM.' });
+    }
+
+    // Filter leads to include only those with `KAM-to-lead` interactions
+    const kamToLeadInteractions = leads.map(lead => {
+      const filteredInteractions = lead.interactions.filter(
+        interaction => interaction.type === 'KAM-to-lead'
+      );
+
+      // Only include leads with at least one `KAM-to-lead` interaction
+      if (filteredInteractions.length > 0) {
+        return {
+          ...lead.toObject(), // Convert lead to plain object
+          interactions: filteredInteractions,
+        };
+      }
+      return null;
+    }).filter(lead => lead !== null); // Remove any leads that have no interactions
+
+    if (kamToLeadInteractions.length === 0) {
+      return res.status(404).json({ error: 'No call history found for the specified KAM.' });
+    }
+
+    // Reverse the order of interactions so the last call appears first
+    kamToLeadInteractions.forEach(lead => {
+      lead.interactions.reverse(); // Reverse interactions for each lead
+    });
+
+    // Reverse the overall order of leads if necessary (this can be adjusted based on your requirements)
+    kamToLeadInteractions.reverse();
+
+    return res.status(200).json(kamToLeadInteractions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+
+const getLeadById = async (req, res) => {
+  try {
+    const { id } = req.params; // Get the leadId from route params
+
+    // Find the lead by its ID
+    const lead = await Lead.findById(id);
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead not found.' });
+    }
+    return res.status(200).json(lead);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
 
 
 const addContact = async (req, res) => {
@@ -256,37 +395,54 @@ const addContact = async (req, res) => {
   }
 };
 
-
 const logInteraction = async (req, res) => {
   try {
     const { leadId } = req.params;
-    const { date, summary, outcome } = req.body;
+    const { summary, type } = req.body; // Include `type` from request body
 
-    if (!date || !summary || !outcome) {
-      return res.status(400).json({ error: 'All fields are required.' });
+    // Validate `type` field
+    if (!['KAM-to-lead', 'Lead-to-POC'].includes(type)) {
+      return res.status(400).json({ error: 'Invalid interaction type. Must be either "KAM-to-lead" or "Lead-to-POC".' });
     }
-    console.log('leadId',leadId)
+
+    // Set date to the current backend date
+    const date = new Date();
+
+    if (!summary) {
+      return res.status(400).json({ error: 'Summary is required.' });
+    }
+
     const lead = await Lead.findById(leadId);
     if (!lead) {
       return res.status(404).json({ error: 'Lead not found.' });
     }
 
-    lead.interactions.push({ date, summary, outcome });
-    lead.lastCall = date;
+    // Add the interaction with the current date, summary, type, and hardcoded outcome
+    lead.interactions.push({ date, summary, type, outcome: 'success' });
+
+    // Update `lastCall` only if the type is `KAM-to-lead`
+    if (type === 'KAM-to-lead') {
+      lead.lastCall = date;
+    }
+
+    // Save the lead document with the new interaction
     await lead.save();
 
     res.status(201).json({ message: 'Interaction logged successfully!', lead });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
 
+
 const addOrder = async (req, res) => {
   try {
     const { leadId } = req.params;
-    const { orderId, quantity, value, date } = req.body;
+    const { orderName, role, name, quantity, value, date } = req.body;
 
-    if (!orderId || !quantity || !value || !date) {
+    // Check if all fields are provided
+    if (!orderName || !role || !name || !quantity || !value || !date) {
       return res.status(400).json({ error: 'All fields are required.' });
     }
 
@@ -295,14 +451,37 @@ const addOrder = async (req, res) => {
       return res.status(404).json({ error: 'Lead not found.' });
     }
 
-    lead.orders.push({ orderId, quantity, value, date });
+    // Ensure proper data types for quantity and value
+    const parsedQuantity = parseInt(quantity, 10);  // Convert quantity to number
+    const parsedValue = parseFloat(value);  // Convert value to number
+
+    if (isNaN(parsedQuantity) || isNaN(parsedValue)) {
+      return res.status(400).json({ error: 'Quantity and value must be valid numbers.' });
+    }
+
+    const orderId = uuidv4();  // Generate a new order ID
+
+    // Push the new order with all required fields
+    lead.orders.push({
+      orderId,
+      name,
+      orderName,
+      role,
+      quantity: parsedQuantity,
+      value: parsedValue,
+      date,
+    });
+
+    // Save the lead
     await lead.save();
 
     res.status(201).json({ message: 'Order logged successfully!', lead });
   } catch (error) {
+    console.log('Error:', error);
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
+
 
 const setCallFrequency = async (req, res) => {
   try {
@@ -327,65 +506,6 @@ const setCallFrequency = async (req, res) => {
   }
 };
 
-const getTodayCalls = async (req, res) => {
-  try {
-    const today = new Date().toISOString().slice(0, 10);
-    console.log('today',today)
-    const leads = await Lead.find({
-      callFrequency: { $ne: null },
-      lastCall: { $lt: new Date(today) },
-    });
-
-    res.status(200).json(leads);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error.' });
-  }
-};
-
-
-const getLastCall = async (req, res) => {
-  try {
-    const { leadId } = req.params;
-
-    const lead = await Lead.findById(leadId);
-    if (!lead) {
-      return res.status(404).json({ error: 'Lead not found.' });
-    }
-
-    const lastCall = lead.interactions[lead.interactions.length - 1];
-    res.status(200).json(lastCall);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error.' });
-  }
-};
-
-
-const getPerformance = async (req, res) => {
-  try {
-    const { leadId } = req.params;
-
-    const lead = await Lead.findById(leadId);
-    if (!lead) {
-      return res.status(404).json({ error: 'Lead not found.' });
-    }
-
-    const totalOrders = lead.orders.length;
-    const averageOrderValue =
-      totalOrders > 0
-        ? lead.orders.reduce((sum, order) => sum + order.value, 0) / totalOrders
-        : 0;
-    const orderFrequency = totalOrders > 0 ? `${totalOrders} orders` : 'No orders';
-
-    res.status(200).json({
-      totalOrders,
-      averageOrderValue,
-      orderFrequency,
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error.' });
-  }
-};
-
 
 
 
@@ -402,7 +522,8 @@ module.exports = {
   logInteraction,
   addOrder,
   setCallFrequency,
-  getTodayCalls,
-  getLastCall,
-  getPerformance
+  updateLeadDetails,
+  getLeadById,
+  getCallRemainingLeads,
+  getCallHistory
 };

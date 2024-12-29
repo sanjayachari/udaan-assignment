@@ -2,6 +2,14 @@ const cookieParser = require("cookie-parser");
 const { urlencoded } = require("express");
 const express = require("express");
 const app = express();
+const cors = require('cors')
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true, 
+  })
+);
 
 // Log requests middleware
 app.use((req, res, next) => {
