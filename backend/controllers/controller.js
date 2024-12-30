@@ -10,6 +10,22 @@ const test = (req, res) => {
   return res.json("Test working..");
 };
 
+const logout = async (req, res) => {
+  try {
+    // Clear the token cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    // Send a success response
+    return res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(500).json({ message: "Something went wrong during logout" });
+  }
+};
 
 const login = async (req, res) => {
   console.log("rendered!");
@@ -153,9 +169,9 @@ const getKAM = async (req, res) => {
 
     // Find the specific KAM in the KAMS array by kamId
     const individualKAM = kam.KAMS.id(kamId);  // 'id' is a built-in mongoose method to find by ObjectId kam {
-    if (!individualKAM) {
-      return res.status(404).json({ message: 'Individual KAM not found' });
-    }
+    // if (!individualKAM) {
+    //   return res.status(404).json({ message: 'Individual KAM not found' });
+    // }
 
     // Return the individual KAM details
     res.status(200).json({
@@ -170,6 +186,7 @@ const getKAM = async (req, res) => {
 
 const addLead = async (req, res) => {
   try {
+    console.log('lll',req.body)
     // Destructure the fields from the request body
     const { name, address, leadStatus, email, kamId, fullName } = req.body;
 
@@ -270,9 +287,9 @@ const getCallRemainingLeads = async (req, res) => {
 
     // Fetch all leads for the given KAM
     const leads = await Lead.find({ 'keyAccountManagers.kamId': kamId });
-    if (!leads || leads.length === 0) {
-      return res.status(404).json({ error: 'No leads found for the specified KAM.' });
-    }
+    // if (!leads || leads.length === 0) {
+    //   return res.status(404).json({ error: 'No leads found for the specified KAM.' });
+    // }
 
     // Get today's date without time (UTC format)
     const today = new Date();
@@ -313,7 +330,7 @@ const getCallHistory = async (req, res) => {
     // Fetch all leads for the given KAM
     const leads = await Lead.find({ 'keyAccountManagers.kamId': kamId });
     if (!leads || leads.length === 0) {
-      return res.status(404).json({ error: 'No leads found for the specified KAM.' });
+      return res.status(200).json([]);
     }
 
     // Filter leads to include only those with `KAM-to-lead` interactions
@@ -333,7 +350,7 @@ const getCallHistory = async (req, res) => {
     }).filter(lead => lead !== null); // Remove any leads that have no interactions
 
     if (kamToLeadInteractions.length === 0) {
-      return res.status(404).json({ error: 'No call history found for the specified KAM.' });
+      return res.status(404).json([]);
     }
 
     // Reverse the order of interactions so the last call appears first
@@ -511,6 +528,7 @@ const setCallFrequency = async (req, res) => {
 
 module.exports = {
   test,
+  logout,
   login,
   register,
   addKAM,

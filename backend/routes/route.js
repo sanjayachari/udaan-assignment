@@ -16,7 +16,8 @@ const {
   updateLeadDetails,
   getLeadById,
   getCallRemainingLeads,
-  getCallHistory
+  getCallHistory,
+  logout
 } = require("../controllers/controller");
 
 
@@ -28,6 +29,7 @@ routes.post("/register", register);
 routes.post("/add-kam", addKAM);
 routes.get("/get-user", verifyJWT, getUser);
 routes.post("/login", login);
+routes.post("/logout", logout);
 routes.get("/get-kam/:kamId", verifyJWT, getKAM);
 
 routes.post('/leads', addLead);
