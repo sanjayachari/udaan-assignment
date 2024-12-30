@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 app.use(cookieParser());
 
 app.use((req, res, next) => {
-  console.log("Cookies:", req.cookies);
+  // console.log("Cookies:", req.cookies);
   next();
 });
 
