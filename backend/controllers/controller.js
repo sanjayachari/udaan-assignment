@@ -42,8 +42,7 @@ const login = async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: "none",
-        maxAge: 3600000, // Expiration time in milliseconds
-
+        maxAge: 86400000,
       });
 
       // Return the logged-in user info (excluding password)
@@ -186,7 +185,7 @@ const getKAM = async (req, res) => {
 
 const addLead = async (req, res) => {
   try {
-    console.log('lll',req.body)
+    console.log('lll', req.body)
     // Destructure the fields from the request body
     const { name, address, leadStatus, email, kamId, fullName } = req.body;
 
@@ -310,7 +309,7 @@ const getCallRemainingLeads = async (req, res) => {
         oneWeekAgo.setDate(today.getDate() - 7); // Set the date to one week ago
         return lastCallDate.getTime() < oneWeekAgo.getTime(); // Exclude leads called in the last week for weekly frequency
       }
-      
+
       return true; // Include leads with no frequency set or any other condition
     });
 
