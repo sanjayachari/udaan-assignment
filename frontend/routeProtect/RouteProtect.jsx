@@ -18,10 +18,12 @@ const ProtectedRoute = (WrappedComponent) => {
         try {
           const res = await axios.get(`${BACKEND}/get-user`, {
             withCredentials: true,
+            credentials: "include",
           });
+          alert("hello");
           if (res.status === 200) {
             setUserInfo(res.data);
-            setLoading(false); 
+            setLoading(false);
           } else {
             router.push("/login"); // Redirect to login
           }
