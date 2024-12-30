@@ -71,7 +71,7 @@ const login = async (req, res) => {
                 // console.log("login Suc")
                 const jwtSign = jwt.sign({user},"san")
                 // console.log("jwtSign:",jwtSign)
-                res.cookie("jwtSign", jwtSign ,
+                res.cookie("token", jwtSign ,
                 // for localhost comment here
                 {
                     sameSite: 'none',
