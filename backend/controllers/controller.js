@@ -69,7 +69,7 @@ const login = async (req, res) => {
             const validCred = await bcrypt.compare(password, isExist.password)
             if(validCred){
                 // console.log("login Suc")
-                const jwtSign = jwt.sign({user},"san")
+                const jwtSign = jwt.sign({isExist},"san")
                 // console.log("jwtSign:",jwtSign)
                 res.cookie("token", jwtSign ,
                 // for localhost comment here
