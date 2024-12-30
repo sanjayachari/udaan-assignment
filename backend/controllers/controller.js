@@ -37,11 +37,13 @@ const login = async (req, res) => {
   //   }
   //   const hashedPassword = await bcrypt.compare(password, user.password);
   //   if (hashedPassword) {
-  //     const jwtSign = jwt.sign({ user }, "san");
-  //     console.log('jwtSign-------', jwtSign)
+  //     const jwtSign = jwt.sign({ user }, "san", { expiresIn: "1h" });
+  //     console.log('jwtSign',jwtSign)
   //     res.cookie("token", jwtSign, {
+  //       httpOnly: true,
   //       secure: true,
   //       sameSite: 'none',
+  //       maxAge: 86400000
   //     });
 
   //     // Return the logged-in user info (excluding password)
@@ -53,42 +55,43 @@ const login = async (req, res) => {
   //   return res.status(403).json({ message: "somthing went wrong" });
   // }
 
-    // res.json(req.body)
-    const {email, password} = req.body;
-    if(!email || !password){
-        res.status(401).json("empty fields")
+  // res.json(req.body)
+  const { email, password } = req.body;
+  if (!email || !password) {
+    res.status(401).json("empty fields")
+  }
+  try {
+    const isExist = await KAM.findOne({ email });
+    // console.log("user",isExist)
+    if (!isExist) {
+      res.status(410).json("Email id is not register")
     }
-    try {
-        const isExist = await KAM.findOne({email});
-        // console.log("user",isExist)
-        if(!isExist){
-            res.status(410).json("Email id is not register")
-        }
-        else{
+    else {
 
-            const validCred = await bcrypt.compare(password, isExist.password)
-            if(validCred){
-                // console.log("login Suc")
-                const jwtSign = jwt.sign({isExist},"san")
-                // console.log("jwtSign:",jwtSign)
-                res.cookie("token", jwtSign ,
-                // for localhost comment here
-                {
-                    sameSite: 'none',
-                    secure: true,
-                }
-                )
-                return res.status(200).json(isExist)
+      const validCred = await bcrypt.compare(password, isExist.password)
+      if (validCred) {
+        // console.log("login Suc")
+        const jwtSign = jwt.sign({ isExist }, "san")
+        // console.log("jwtSign:",jwtSign)
+        res.cookie("jwtSign", jwtSign,
+          // for localhost comment here
+          {
+            sameSite: 'none',
+            secure: true,
+          }
+        )
+        return res.status(210).json(isExist)
 
-            }else{
-                return res.status(410).json("Wrong Credentials")
-            }
-        }
-
-    } catch (error) {
-        console.log("hello from login error")
-        // res.json("wrong cred")
+      } else {
+        return res.status(410).json("Wrong Credentials")
+      }
     }
+
+  } catch (error) {
+    console.log("hello from login error")
+    // res.json("wrong cred")
+  }
+
 };
 
 const salt = 10; // Define the salt rounds
