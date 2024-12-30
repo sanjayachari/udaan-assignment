@@ -42,8 +42,8 @@ const login = async (req, res) => {
       res.cookie("token", jwtSign, {
         httpOnly: true,
         secure: true,
-        sameSite: "none",
-        maxAge: 86400000,
+        sameSite: 'none',
+        maxAge: 86400000
       });
 
       // Return the logged-in user info (excluding password)

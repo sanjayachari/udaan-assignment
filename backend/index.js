@@ -9,6 +9,8 @@ app.use(
   cors({
     origin: [API1, API2],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 
