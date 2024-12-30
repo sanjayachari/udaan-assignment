@@ -32,7 +32,7 @@ export function LoginForm({ className, ...props }) {
         withCredentials: true, 
       });
       if (res.status === 200) {
-        router.push("/dashboard");
+        router.push("/dashboard?route=performance");
       }
     } catch (error) {
       console.log(error);

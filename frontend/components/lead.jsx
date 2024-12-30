@@ -27,6 +27,7 @@ import axios from "axios";
 import { BACKEND } from "@/constant/constant";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { LeadPie } from "./LeadPie";
+import Loading from "./Loading";
 
 const Lead = () => {
   const { userInfo, currentKAM } = useContext(UserContext);
@@ -41,7 +42,7 @@ const Lead = () => {
   const [leads, setLeads] = useState([]);
   const [open, setOpen] = useState(false); // State to manage dialog visibility
   const [openLead, setOpenLead] = useState(false); // State to manage dialog visibility
-
+  const [loadComp,setLoadComp] = useState(true)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,6 +70,7 @@ const Lead = () => {
   };
 
   const fun = async () => {
+    setLoadComp(true)
     if (currentKAM?.KAM_ID) {
       try {
         const res = await axios.get(
@@ -77,9 +79,13 @@ const Lead = () => {
             withCredentials: true,
           }
         );
+        setLoadComp(false)
         setLeads(res.data);
+
       } catch (error) {
         console.error(error);
+        setLoadComp(false); // In case of error, stop loading
+
       }
     }
   };
@@ -113,6 +119,10 @@ const Lead = () => {
       alert("Failed to update lead.");
     }
   };
+
+  if(loadComp){
+    return <Loading/>
+  }
 
   return (
     <SidebarInset>
@@ -336,8 +346,13 @@ const Lead = () => {
               </Dialog>
             </div>
             <div className="flex col-span-1 items-center justify-center h-full rounded-xl bg-muted/50">
-              <LeadPie leads={leads}/>
-            </div>
+  {leads.length === 0 ? (
+    <div>No Data</div> 
+  ) : (
+    <LeadPie leads={leads} />  
+  )}
+</div>
+
           </div>
         </div>
       </div>

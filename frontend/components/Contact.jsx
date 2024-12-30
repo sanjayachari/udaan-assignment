@@ -205,8 +205,13 @@ const ContactComp = () => {
             )}
           </div>
           <div className="flex col-span-1 items-center justify-center h-[500px] rounded-xl bg-muted/50">
-            <ContactPie leads={leads} />
-          </div>
+  {leads.length === 0 ? (
+    <div>No Data</div>
+  ) : (
+    <ContactPie leads={leads} />
+  )}
+</div>
+
         </div>
       </div>
     </SidebarInset>

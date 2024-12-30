@@ -52,6 +52,7 @@ const CallComp = () => {
 
   const fun = async () => {
     if (currentKAM?.KAM_ID) {
+      console.log('render')
       try {
         const res = await axios.get(
           `${BACKEND}/remaining-leads/kam/${currentKAM.KAM_ID}`,
@@ -60,6 +61,8 @@ const CallComp = () => {
           }
         );
         setLeads(res.data);
+      console.log('render')
+
         const callHistoryRes = await axios.get(
           `${BACKEND}/call-history-leads/kam/${currentKAM.KAM_ID}`,
           {
@@ -113,46 +116,6 @@ const CallComp = () => {
   const [value, setValue] = useState("");
   const [date, setDate] = useState("");
   const [orderProd, setOrderProd] = useState("");
-
-  // Function to handle "Save Changes"
-  const handleSaveChanges = async (name, role) => {
-    const payload = {
-      quantity,
-      value,
-      date,
-      name,
-      role,
-      orderName: orderProd,
-    };
-
-    console.log("Payload:", payload);
-
-    // Add your API call or logic here
-    if (!orderProd || !quantity || !value || !date) {
-      alert("All fields are required.");
-      return;
-    }
-
-    try {
-      const res = await axios.post(
-        `${BACKEND}/leads/${leadId}/orders`,
-        payload,
-        {
-          withCredentials: true,
-        }
-      );
-      console.log("res", res.data);
-      if (res.status === 201) {
-        setQuantity("");
-        setValue("");
-        setDate("");
-        setOrderProd("");
-        fetchLeadDetails(leadId);
-      }
-    } catch (error) {
-      console.error("Error adding contact:", error);
-    }
-  };
 
   const [callFrequency, setCallFrequency] = useState(""); // State to track selected call frequency
 
@@ -218,10 +181,10 @@ const CallComp = () => {
         <div className="grid auto-rows-min gap-4 md:grid-cols-3 h-[800px] p-2">
           <div
             className={`p-3 grid col-span-2 min-h-[800px] rounded-xl ${
-              leads ? "" : "items-center justify-center"
+              leads?.length > 0 ? "" : "items-center justify-center"
             }`}
           >
-            {leads ? (
+            {leads?.length > 0 ? (
               <div className="">
                 {leads.map((e, i) => (
                   <div

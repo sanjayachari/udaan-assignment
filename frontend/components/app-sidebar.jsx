@@ -29,41 +29,41 @@ import { useContext, useEffect, useState } from "react";
 import { BACKEND } from "@/constant/constant";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-
 export function AppSidebar({ ...props }) {
   const { userInfo } = useContext(UserContext);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const { setUserInfo, setCurrKAM } = useContext(UserContext);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await axios.get(`${BACKEND}/get-user`, {
-          withCredentials: true,
-        });
-        if (res.status === 200) {
-          setUserInfo(res.data);
-          if (
-            Array.isArray(res.data?.kams?.KAMS) &&
-            res.data?.kams?.KAMS?.length > 0
-          ) {
-            setCurrKAM({
-              fullName: res.data?.kams?.KAMS[0]?.fullName,
-              KAM_ID: res.data?.kams?.KAMS[0]?._id,
-            });
-          }
-          setLoading(false);
-        } else {
-          router.push("/login"); // Redirect to login
+  const checkAuth = async () => {
+    try {
+      const res = await axios.get(`${BACKEND}/get-user`, {
+        withCredentials: true,
+      });
+      if (res.status === 200) {
+        setUserInfo(res.data);
+        if (
+          Array.isArray(res.data?.kams?.KAMS) &&
+          res.data?.kams?.KAMS?.length > 0
+        ) {
+          setCurrKAM({
+            fullName: res.data?.kams?.KAMS[0]?.fullName,
+            KAM_ID: res.data?.kams?.KAMS[0]?._id,
+          });
         }
-      } catch (error) {
-        router.push("/login"); // Redirect to login on error
+        setLoading(false);
+      } else {
+        router.push("/login"); // Redirect to login
       }
-    };
+    } catch (error) {
+      router.push("/login"); // Redirect to login on error
+    }
+  };
 
+  useEffect(() => {
     checkAuth();
   }, [router]);
+
   const data = {
     user: {
       name: userInfo?.kams?.KAMS?.[0]?.fullName || "san",
@@ -72,12 +72,19 @@ export function AppSidebar({ ...props }) {
     },
     teams: Array.isArray(userInfo?.kams?.KAMS)
       ? userInfo.kams.KAMS.map((kam) => ({
-          name: kam?.fullName || "Unknown",
+          fullName: kam?.fullName || "Unknown",
           logo: GalleryVerticalEnd,
           plan: kam?.status || "active",
+          KAM_ID: kam._id,
         }))
       : [],
+    parentEmail: userInfo?.kams?.email,
     projects: [
+      {
+        name: "Performance Tracking",
+        url: "/dashboard?route=performance",
+        icon: Map,
+      },
       {
         name: "Lead Management",
         url: "/dashboard?route=lead",
@@ -98,18 +105,17 @@ export function AppSidebar({ ...props }) {
         url: "/dashboard?route=call",
         icon: PieChart,
       },
-      {
-        name: "Performance Tracking",
-        url: "/dashboard?route=performance",
-        icon: Map,
-      },
     ],
   };
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher
+          teams={data.teams}
+          checkAuth={checkAuth} // Pass the checkAuth function here
+          parentEmail={data.parentEmail}
+        />
       </SidebarHeader>
       <SidebarContent>
         <NavProjects projects={data.projects} />

@@ -104,8 +104,13 @@ const Interaction = () => {
 
           {/* Analytics */}
           <div className="col-span-1 flex items-center justify-center h-[500px] rounded-xl bg-muted/50">
-            <InteractionPie leads={leads} />
-          </div>
+  {leads.length === 0 ? (
+    <div>No Data</div>
+  ) : (
+    <InteractionPie leads={leads} />
+  )}
+</div>
+
         </div>
       </div>
     </SidebarInset>
