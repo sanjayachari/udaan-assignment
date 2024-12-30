@@ -20,6 +20,12 @@ app.use((req, res, next) => {
 
 // Parse cookies
 app.use(cookieParser());
+
+app.use((req, res, next) => {
+  console.log("Cookies:", req.cookies);
+  next();
+});
+
 app.use(express.json());
 
 // Parse URL-encoded bodies
