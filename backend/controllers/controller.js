@@ -37,13 +37,11 @@ const login = async (req, res) => {
     }
     const hashedPassword = await bcrypt.compare(password, user.password);
     if (hashedPassword) {
-      const jwtSign = jwt.sign({ user }, "san", { expiresIn: "1h" });
-      console.log('jwtSign',jwtSign)
+      const jwtSign = jwt.sign({ user }, "san");
+      console.log('jwtSign-------', jwtSign)
       res.cookie("token", jwtSign, {
-        httpOnly: true,
         secure: true,
         sameSite: 'none',
-        maxAge: 86400000
       });
 
       // Return the logged-in user info (excluding password)
