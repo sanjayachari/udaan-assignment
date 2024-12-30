@@ -29,29 +29,66 @@ const logout = async (req, res) => {
 
 const login = async (req, res) => {
   console.log("rendered!");
-  try {
-    const { email, password } = req.body;
-    const user = await KAM.findOne({ email });
-    if (!user) {
-      return res.json({ message: "User not exist" });
-    }
-    const hashedPassword = await bcrypt.compare(password, user.password);
-    if (hashedPassword) {
-      const jwtSign = jwt.sign({ user }, "san");
-      console.log('jwtSign-------', jwtSign)
-      res.cookie("token", jwtSign, {
-        secure: true,
-        sameSite: 'none',
-      });
+  // try {
+  //   const { email, password } = req.body;
+  //   const user = await KAM.findOne({ email });
+  //   if (!user) {
+  //     return res.json({ message: "User not exist" });
+  //   }
+  //   const hashedPassword = await bcrypt.compare(password, user.password);
+  //   if (hashedPassword) {
+  //     const jwtSign = jwt.sign({ user }, "san");
+  //     console.log('jwtSign-------', jwtSign)
+  //     res.cookie("token", jwtSign, {
+  //       secure: true,
+  //       sameSite: 'none',
+  //     });
 
-      // Return the logged-in user info (excluding password)
-      return res.json(user);
-    } else {
-      return res.status(403).json({ message: "Wrong credentials" });
+  //     // Return the logged-in user info (excluding password)
+  //     return res.json(user);
+  //   } else {
+  //     return res.status(403).json({ message: "Wrong credentials" });
+  //   }
+  // } catch (error) {
+  //   return res.status(403).json({ message: "somthing went wrong" });
+  // }
+
+    // res.json(req.body)
+    const {email, password} = req.body;
+    if(!email || !password){
+        res.status(401).json("empty fields")
     }
-  } catch (error) {
-    return res.status(403).json({ message: "somthing went wrong" });
-  }
+    try {
+        const isExist = await KAM.findOne({email});
+        // console.log("user",isExist)
+        if(!isExist){
+            res.status(410).json("Email id is not register")
+        }
+        else{
+
+            const validCred = await bcrypt.compare(password, isExist.password)
+            if(validCred){
+                // console.log("login Suc")
+                const jwtSign = jwt.sign({user},"san")
+                // console.log("jwtSign:",jwtSign)
+                res.cookie("jwtSign", jwtSign ,
+                // for localhost comment here
+                {
+                    sameSite: 'none',
+                    secure: true,
+                }
+                )
+                return res.status(210).json({id:isExist._id, email:isExist.email, name:isExist.name})
+
+            }else{
+                return res.status(410).json("Wrong Credentials")
+            }
+        }
+
+    } catch (error) {
+        console.log("hello from login error")
+        // res.json("wrong cred")
+    }
 };
 
 const salt = 10; // Define the salt rounds
