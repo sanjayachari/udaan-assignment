@@ -32,6 +32,7 @@ export function LoginForm({ className, ...props }) {
         withCredentials: true, 
         credentials: 'include'
       });
+      alert(BACKEND)
       if (res.status === 200) {
         router.push("/dashboard?route=performance");
       }
