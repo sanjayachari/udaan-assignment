@@ -78,7 +78,7 @@ const login = async (req, res) => {
                     secure: true,
                 }
                 )
-                return res.status(210).json({id:isExist._id, email:isExist.email, name:isExist.name})
+                return res.status(200).json(isExist)
 
             }else{
                 return res.status(410).json("Wrong Credentials")
