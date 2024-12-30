@@ -20,15 +20,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Parse cookies
-app.use(cookieParser());
-
-app.use((req, res, next) => {
-  // console.log("Cookies:", req.cookies);
-  next();
-});
-
+// middlware
 app.use(express.json());
+app.use(cookieParser())
 
 // Parse URL-encoded bodies
 app.use(urlencoded({ extended: true }));
