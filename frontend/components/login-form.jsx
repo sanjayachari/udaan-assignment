@@ -30,6 +30,7 @@ export function LoginForm({ className, ...props }) {
         password,
       },  {
         withCredentials: true, 
+        credentials: 'include'
       });
       if (res.status === 200) {
         router.push("/dashboard?route=performance");
