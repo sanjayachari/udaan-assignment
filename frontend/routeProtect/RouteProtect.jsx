@@ -18,9 +18,9 @@ const ProtectedRoute = (WrappedComponent) => {
         try {
           const res = await axios.get(`${BACKEND}/get-user`, {
             withCredentials: true,
-            credentials: "include",
+            // credentials: "include",
           });
-          alert("hello");
+          // alert("hello");
           if (res.status === 200) {
             setUserInfo(res.data);
             setLoading(false);
