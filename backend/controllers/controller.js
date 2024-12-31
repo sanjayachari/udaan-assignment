@@ -27,41 +27,8 @@ const logout = async (req, res) => {
   }
 };
 
-const loginaa = async (req, res) => {
-  console.log("rendered!");
-  try {
-    const { email, password } = req.body;
-    const user = await KAM.findOne({ email });
-    if (!user) {
-      return res.json({ message: "User not exist" });
-    }
-    const hashedPassword = await bcrypt.compare(password, user.password);
-    if (hashedPassword) {
-      const jwtSign = jwt.sign({ user }, "san", { expiresIn: "1h" });
-      console.log('jwtSign',jwtSign)
-      res.cookie("token", jwtSign, {
-        // httpOnly: true,
-        sameSite: 'none',
-        secure: true,
-        // maxAge: 86400000
-      });
 
-      // Return the logged-in user info (excluding password)
-      return res.json(user);
-    } else {
-      return res.status(403).json({ message: "Wrong credentials" });
-    }
-  } catch (error) {
-    return res.status(403).json({ message: "somthing went wrong" });
-  }
-
-
-
-};
-
-const login = async (req,res) =>{
-
-  // res.json(req.body)
+const login = async (req, res) => {
   const { email, password } = req.body;
 
   // Check if required fields are missing
@@ -84,10 +51,10 @@ const login = async (req,res) =>{
     }
 
     // Generate JWT token
-    const jwtSign = jwt.sign({ user : isExist }, "san", {
+    const jwtSign = jwt.sign({ user: isExist }, "san", {
       expiresIn: "1h", // Token expires in 1 hour
     });
-    console.log('jwtSign',jwtSign)
+    console.log('jwtSign', jwtSign)
     // Set secure cookie for the token
     res.cookie("token", jwtSign, {
       sameSite: 'none', // Required for cross-site cookies
@@ -106,11 +73,14 @@ const salt = 10; // Define the salt rounds
 const register = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
+    if (!fullName || !email || !password) {
+      return res.status(500).json({ message: 'Please fill all the fields' });
 
+    }
     // Check if the email already exists
     const isExist = await KAM.findOne({ email });
     if (isExist) {
-      return res.status(405).json({ message: 'Email already registered!' });
+      return res.status(500).json({ message: 'Email already registered!' });
     }
 
     // Hash the password

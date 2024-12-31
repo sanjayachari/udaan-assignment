@@ -25,29 +25,38 @@ const express = require("express");
 const routes = express.Router();
 
 routes.get("/test", test);
+
 routes.post("/register", register);
+
 routes.post("/add-kam", addKAM);
+
 routes.get("/get-user", verifyJWT, getUser);
+
 routes.post("/login", login);
+
 routes.post("/logout", logout);
+
 routes.get("/get-kam/:kamId", verifyJWT, getKAM);
 
-routes.post('/leads', addLead);
-routes.get('/leads/:id', getLeadById);
-routes.put('/leads', updateLeadDetails); // update
+routes.post('/leads', verifyJWT, addLead);
 
-routes.get('/leads/kam/:kamId', getLead);
-routes.get('/remaining-leads/kam/:kamId', getCallRemainingLeads);
-routes.get('/call-history-leads/kam/:kamId', getCallHistory);
+routes.get('/leads/:id', verifyJWT, getLeadById);
 
-routes.post('/leads/:leadId/contacts', addContact);
-routes.post('/leads/:leadId/interactions', logInteraction);
-routes.post('/leads/:leadId/orders', addOrder);
-routes.post('/leads/:leadId/callFrequency', setCallFrequency);
+routes.put('/leads', verifyJWT, updateLeadDetails); // update
 
+routes.get('/leads/kam/:kamId', verifyJWT, getLead);
 
+routes.get('/remaining-leads/kam/:kamId', verifyJWT, getCallRemainingLeads);
 
+routes.get('/call-history-leads/kam/:kamId', verifyJWT, getCallHistory);
 
+routes.post('/leads/:leadId/contacts', verifyJWT, addContact);
+
+routes.post('/leads/:leadId/interactions', verifyJWT, logInteraction);
+
+routes.post('/leads/:leadId/orders', verifyJWT, addOrder);
+
+routes.post('/leads/:leadId/callFrequency', verifyJWT, setCallFrequency);
 
 
 module.exports = routes;
