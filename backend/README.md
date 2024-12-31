@@ -1,7 +1,23 @@
-# Next.js Project
+# Node.js Project
 
-This repository contains a Next.js application, a powerful React framework for building server-side rendered (SSR) and static web applications.
+This repository contains a Node.js application, a runtime environment for executing JavaScript code server-side.
 
+## Features
+- **Lightweight and Efficient**
+- **Asynchronous and Event-driven**
+- **Built-in Modules for Networking and File Systems**
+- **Extensive Package Ecosystem with npm**
+
+---
+
+## Prerequisites
+
+Ensure you have the following installed on your system:
+
+- [Node.js](https://nodejs.org/) (version 16 or above recommended)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+
+---
 
 ## Installation
 
@@ -30,50 +46,38 @@ Follow these steps to set up and run the project on your local machine:
 
 ## Running the Project
 
-To start the development server:
+To start the application:
 
 Using npm:
 ```bash
-npm run dev
+npm start
 ```
 
 Using yarn:
 ```bash
-yarn dev
+yarn start
 ```
 
-The application will run on `http://localhost:3000` 
-
----
-
-## Build and Production
-
-1. Build the project for production:
-    ```bash
-    npm run build
-    ```
-    or
-    ```bash
-    yarn build
-    ```
-
-2. Start the production server:
-    ```bash
-    npm start
-    ```
-    or
-    ```bash
-    yarn start
-    ```
+By default, the application will run on `http://localhost:5000` unless otherwise specified.
 
 ---
 
 ## Scripts
 
-- `dev`: Starts the development server on [http://localhost:3000](http://localhost:3000).
-- `build`: Builds the application for production.
-- `start`: Starts the production server.
-- `lint`: Runs linting for the project files.
+- `start`: Starts the application.
+- `dev`: Starts the application in development mode (if configured).
+- `build`: Prepares the application for production (if applicable).
+- `test`: Runs tests for the project (if applicable).
+
+---
+
+## Environment Variables
+
+You can configure the application using environment variables. Create a `.env` file in the root directory and define the following variables as needed:
+
+```env
+PORT=5000
+```
 
 ---
 
